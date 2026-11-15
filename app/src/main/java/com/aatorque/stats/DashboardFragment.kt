@@ -303,6 +303,23 @@ open class DashboardFragment : AlbumArt() {
             true
         }
         configureRotaryInput()
+
+        // --- Diagnostic instrumentation: log every time our root view's actual
+        // laid-out bounds change. This fires on a real window resize regardless of
+        // whether the host also sends a Configuration change, so it's the most
+        // reliable signal for "did the AA host ever give us less than the full
+        // screen". Tag "DIMS", visible via `adb logcat -s "AATORQUE:DIMS"` or
+        // Settings > "Copy logs to clipboard". Safe to remove once diagnosed.
+        rootView.addOnLayoutChangeListener { _, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom ->
+            if (left != oldLeft || top != oldTop || right != oldRight || bottom != oldBottom) {
+                Timber.tag("DIMS").i(
+                    "DashboardFragment rootView bounds changed: %dx%d -> %dx%d",
+                    oldRight - oldLeft, oldBottom - oldTop,
+                    right - left, bottom - top
+                )
+            }
+        }
+
         return rootView
     }
 

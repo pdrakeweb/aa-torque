@@ -2,6 +2,7 @@
 package com.aatorque.stats
 
 import android.content.Intent
+import android.content.res.Configuration
 import android.os.Bundle
 import android.view.KeyEvent
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
@@ -40,6 +41,21 @@ class MainCarActivity : CarActivity() {
     private var awaitingTheme: String? = null
     private var lastTheme: String? = null
 
+    // --- Diagnostic instrumentation for the "does the AA host ever hand us a narrower
+    // window" investigation. Safe to remove once we have an answer. Logs go through
+    // Timber -> CacheLogTree, so they show up both in `adb logcat -s "AATORQUE:DIMS"`
+    // and in Settings > "Copy logs to clipboard".
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        Timber.tag("DIMS").i(
+            "onConfigurationChanged: screenWidthDp=%d screenHeightDp=%d orientation=%d densityDpi=%d",
+            newConfig.screenWidthDp,
+            newConfig.screenHeightDp,
+            newConfig.orientation,
+            newConfig.densityDpi
+        )
+    }
+
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         if (event?.action == KeyEvent.ACTION_DOWN) {
             val intent = Intent("KEY_DOWN").apply {
@@ -66,6 +82,13 @@ class MainCarActivity : CarActivity() {
         }
         setLocalTheme(data.selectedTheme)
         setContentView(R.layout.activity_car_main)
+        Timber.tag("DIMS").i(
+            "onCreate: initial config screenWidthDp=%d screenHeightDp=%d displayMetrics=%dx%d",
+            resources.configuration.screenWidthDp,
+            resources.configuration.screenHeightDp,
+            resources.displayMetrics.widthPixels,
+            resources.displayMetrics.heightPixels
+        )
         /*
         CarUiController carUiController = getCarUiController();
         //force night mode
